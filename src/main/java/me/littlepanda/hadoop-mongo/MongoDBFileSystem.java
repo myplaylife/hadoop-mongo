@@ -40,12 +40,11 @@ import com.mongodb.gridfs.GridFSInputFile;
 
 /****************************************************************
  * Implement the FileSystem API for the MongoDB filesystem.
- * 
- * v1.0 backlog： 
- * 	1）将文件系统结构改为INodeTree实现 
- * 	2）调查Hadoop抽象文件系统其他几种存储方式的使用方法并写例子
- * 	3）将不影响返回结果的操作开辟新线程执行
- * 	4）增加命名空间权限判断 
+ *
+ * v1.0 backlog：
+ * 	1）调查Hadoop抽象文件系统其他几种存储方式的使用方法并写例子
+ * 	2）将不影响返回结果的操作开辟新线程执行
+ * 	3）增加命名空间权限判断
  *  	- 如果目录有r-x权限，则能看到，而且能获取子文件列表；如果只有r--权限，则只能看到文件，但不能获取子文件列表。
  *  	- 文件的权限语义：
  *  		- r（read）：可读取文件的实际内容
@@ -59,12 +58,12 @@ import com.mongodb.gridfs.GridFSInputFile;
  *  			- 3）更名已存在的文件或目录；
  *  			- 4）搬移目录内的文件或目录。
  *  		- x（access directory）：能否进入该目录
- * 	5）增加setOwner方法
- * 	6）增加setPermission方法
- *  7）增加dubbo服务接口实现 - 已完成
- *  8）dubbo服务接口应该使用流式接口操作
+ * 	4）增加setOwner方法
+ * 	5）增加setPermission方法
+ *  6）增加dubbo服务接口实现 - 已完成
+ *  7）dubbo服务接口应该使用流式接口操作
  * 
- * v2.0 backlog： 
+ * v2.0 backlog：
  * 	1）实现hadoop2.x版本 - 目前的0.7-SNAPSHOT已经完成
  * 	2）猜测并发追加文件可能会有问题，需要解决
  * 	3）FSDataInputStream没有统计功能，为其加上统计功能
@@ -73,7 +72,7 @@ import com.mongodb.gridfs.GridFSInputFile;
  *  6）支持kerbros
  *  7）支持HARFileSystem
  *  8）压缩文件流传输
- * 
+ *
  * v0.6 release note：
  *  1）创建文件、目录、文件改名时，获取当前用户所在用户组（目前可取到用户名）
  *      - 还是采用默认的实现方式，采用操作系统用户名和组
@@ -90,11 +89,11 @@ import com.mongodb.gridfs.GridFSInputFile;
  *  9）修改bug，修改登錄用戶名和所屬組不起作用
  *      - 因为FileSystem是单例，根据schema、authority、 ugi来判断是否唯一，而我们现在的实现没有根据用户名来修改 ugi
  *      - 去掉后添加的外部设置username和group的代码，应该把应用系统作为系统用户，而不是具体的业务用户，目前只需要提供操作系统级用户即可
- * 
- * 获取FileSystem实例： 
+ *
+ * 获取FileSystem实例：
  * 	FileSystem fs = FileSystem.get(new Configuration());
  * 使用本包的所有应用系统如果部署在不同的linux机器中，应用所处的用户名和所属用户组需要保持一致
- * 
+ *
  *****************************************************************/
 public class MongoDBFileSystem extends FileSystem {
 
@@ -137,13 +136,13 @@ public class MongoDBFileSystem extends FileSystem {
 	private static boolean cursorFinalizerEnabled; // 客户端不关闭的情况下，DBCursor对象的finalizer方法是否可用
 	private static boolean alwaysUseMBeans; // 是否一致使用MBeans，不管java的版本是java6或更高
 	private static SocketFactory socketFactory; // socket工厂
-	
+
 	/*
 	 * 登录MongoDB用户名和密码
 	 */
 	private static String mongodb_username;
 	private static String mongodb_password;
-	
+
 	/*
 	 * 用户默认组
 	 */
@@ -157,9 +156,9 @@ public class MongoDBFileSystem extends FileSystem {
 	}
 
 	/**
-	 * 初始化 
-	 * 	1、创建mongodb资源定位符 
-	 * 	2、获取mongodb连接信息 
+	 * 初始化
+	 * 	1、创建mongodb资源定位符
+	 * 	2、获取mongodb连接信息
 	 * 	3、设置当前工作目录（默认是/user/${currentUser}）
 	 */
 	public void initialize(URI uri, Configuration conf) throws IOException {
@@ -243,7 +242,7 @@ public class MongoDBFileSystem extends FileSystem {
 	/**
 	 * 获取文件或目录的状态 详情参见 @org.apache.hadoop.fs.FileStatus
 	 * @param f 目标文件或目录
-	 * 
+	 *
 	 */
 	@Override
 	public FileStatus getFileStatus(Path f) throws IOException {
@@ -262,7 +261,7 @@ public class MongoDBFileSystem extends FileSystem {
 	/**
 	 * 获取一组文件或目录的状态信息
 	 * @param f 如果是文件，获取文件的状态；如果是目录，获取其直接子节点的状态信息
-	 * 
+	 *
 	 */
 	@Override
 	public FileStatus[] listStatus(Path f) throws IOException {
@@ -299,11 +298,11 @@ public class MongoDBFileSystem extends FileSystem {
 
 	/*
 	 * 将MongoDB查询的文件格式转换为Hadoop系统文件状态对象
-	 * 
+	 *
 	 * @param gridFile
-	 * 
+	 *
 	 * @return Hadoop文件状态
-	 * 
+	 *
 	 */
 	private FileStatus makeFileStatusQualified(GridFSDBFile gridFile) {
 		DBObject obj = gridFile.getMetaData();
@@ -323,7 +322,7 @@ public class MongoDBFileSystem extends FileSystem {
 
 	/**
 	 * 创建文件 只返回流，用户自己决定如何写入数据
-	 * 
+	 *
 	 * @param f
 	 *            文件路径
 	 * @param permission
@@ -394,7 +393,7 @@ public class MongoDBFileSystem extends FileSystem {
 
 	/**
 	 * 创建目录 如果父目录不存在，会递归创建 目录实际上是length=0；chunkSize=1的文件
-	 * 
+	 *
 	 * @param f
 	 *            目标目录
 	 * @param permission
@@ -443,7 +442,7 @@ public class MongoDBFileSystem extends FileSystem {
 
 	/**
 	 * 删除文件或目录
-	 * 
+	 *
 	 * @param f
 	 *            目标文件或目录
 	 * @param recursive
@@ -486,9 +485,9 @@ public class MongoDBFileSystem extends FileSystem {
 
 	/*
 	 * 根据查询条件获取文件数量
-	 * 
+	 *
 	 * @param query
-	 * 
+	 *
 	 * @return
 	 */
 	private long count(DBObject query) {
@@ -498,7 +497,7 @@ public class MongoDBFileSystem extends FileSystem {
 
 	/**
 	 * 检查文件或路径是否存在
-	 * 
+	 *
 	 * @param f
 	 *            源文件或路径
 	 */
@@ -530,7 +529,7 @@ public class MongoDBFileSystem extends FileSystem {
 
 	/**
 	 * 打开一个文件，读取流的操作由用户自己完成
-	 * 
+	 *
 	 * @needupdate 支持流的定位
 	 */
 	@Override
@@ -559,7 +558,7 @@ public class MongoDBFileSystem extends FileSystem {
 
 	/**
 	 * 文件或目录改名
-	 * 
+	 *
 	 * @param src
 	 *            原路径
 	 * @param dst
@@ -626,11 +625,11 @@ public class MongoDBFileSystem extends FileSystem {
 
 	/*
 	 * 文件改名
-	 * 
+	 *
 	 * @param src 原路径
-	 * 
+	 *
 	 * @param dst 目标路径
-	 * 
+	 *
 	 * @return 成功：true；失败：false。
 	 */
 	private boolean renameGridFile(Path src, Path dst) throws IOException {
@@ -660,7 +659,7 @@ public class MongoDBFileSystem extends FileSystem {
 
 	/**
 	 * 检查路径是否合法
-	 * 
+	 *
 	 * @param path
 	 */
 	public void checkFilenameValid(String path) {
@@ -669,19 +668,19 @@ public class MongoDBFileSystem extends FileSystem {
 					+ path);
 		}
 	}
-	
+
 	/**
 	 * 暂不支持获取使用空间方法
 	 */
 	public long getUsed() throws IOException{
 	    throw new IOException("不支持此方法。");
 	  }
-	
+
 	/*
 	 * 将相对路径改成绝对路径
-	 * 
+	 *
 	 * @param f
-	 * 
+	 *
 	 * @return
 	 */
 	private Path makeAbsolute(Path f) {
@@ -691,7 +690,7 @@ public class MongoDBFileSystem extends FileSystem {
 			return new Path(workingDir, f);
 		}
 	}
-	
+
 	/**
 	 * @return 当前用户，默认是操作系统用户
 	 * @throws IOException
@@ -699,7 +698,7 @@ public class MongoDBFileSystem extends FileSystem {
 	private String getCurrentUsername() throws IOException{
 		return UserGroupInformation.getCurrentUser().getUserName();
 	}
-	
+
 	/**
 	 * @return 当前用户所在组，默认是Linux用户所在的主组，windows会返回空
 	 * @throws IOException
@@ -709,7 +708,7 @@ public class MongoDBFileSystem extends FileSystem {
 		return groups.length == 0 ? defaultgroup : groups[0];
 	}
 
-	/** 
+	/**
 	 * MongoDB操作类
 	 */
 	static final class MongoDB {
@@ -760,7 +759,7 @@ public class MongoDBFileSystem extends FileSystem {
 			}
 			return mdb;
 		}
-		
+
 		static GridFS getGridFS(){
 			return gridFS;
 		}
